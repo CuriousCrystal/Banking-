@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { reportApi } from '../api/api'
+import { reportApi, tenantApi } from '../api/api'
 
 export default function Dashboard() {
   const [data, setData] = useState(null)
+  const [plan, setPlan] = useState(null)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     reportApi.summary().then(setData).catch((err) => setError(err.message))
+    tenantApi.current().then(setPlan).catch(() => { /* the plan line is optional */ })
   }, [])
 
   if (error) return <div className="banner">{error}</div>
@@ -21,6 +23,11 @@ export default function Dashboard() {
       <div>
         <h1>Dashboard</h1>
         <div className="muted">Live figures from the database</div>
+        {plan?.maxCustomers && (
+          <div className="muted">
+            {plan.plan} plan · {plan.customers} of {plan.maxCustomers} customers · {plan.users} of {plan.maxUsers} users
+          </div>
+        )}
       </div>
 
       <div className="tiles">

@@ -1,7 +1,13 @@
 import http from './http'
 
 export const authApi = {
-  login: (payload) => http.post('/auth/login', payload).then((r) => r.data)
+  login: (payload) => http.post('/auth/login', payload).then((r) => r.data),
+  signup: (payload) => http.post('/auth/signup', payload).then((r) => r.data)
+}
+
+// the signed-in user's bank: name, plan, plan limits and how much of them is used
+export const tenantApi = {
+  current: () => http.get('/tenant').then((r) => r.data)
 }
 
 export const customerApi = {

@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.jsx'
+import { APP_NAME } from '../config'
 
 export default function Layout() {
   const { auth, logout, hasRole } = useAuth()
@@ -13,7 +14,10 @@ export default function Layout() {
   return (
     <div className="shell">
       <header className="topbar">
-        <div className="brand">AMC Bank</div>
+        <div className="brand">
+          {auth.tenant?.name ?? APP_NAME}
+          {auth.tenant && <span className="pill">{auth.tenant.plan}</span>}
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span className="muted">{auth.username} · {auth.roles.join(', ')}</span>
           <button className="ghost" style={{ height: 36 }} onClick={signOut}>Logout</button>

@@ -1,12 +1,20 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { authApi } from '../api/api'
 import { useAuth } from '../auth/AuthContext.jsx'
+import { APP_NAME } from '../config'
+
+// Dev builds pre-fill the demo bank; production builds start empty (VITE_DEFAULT_BANK_CODE can set one).
+const DEFAULT_BANK = import.meta.env.VITE_DEFAULT_BANK_CODE ?? (import.meta.env.DEV ? 'amc-bank' : '')
+
+const rememberedBank = () => {
+  try { return localStorage.getItem('bankCode') } catch { return null }
+}
 
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ username: '', password: '' })
+  const [form, setForm] = useState({ tenant: rememberedBank() || DEFAULT_BANK, username: '', password: '' })
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
@@ -23,7 +31,9 @@ export default function Login() {
     setBusy(true)
     setError(null)
     try {
-      const data = await authApi.login({ username, password: form.password })
+      const tenant = form.tenant.trim().toLowerCase()
+      const data = await authApi.login({ tenant, username, password: form.password })
+      try { localStorage.setItem('bankCode', tenant) } catch { /* private mode - not important */ }
       login(data)
       navigate('/dashboard')
     } catch (err) {
@@ -37,11 +47,17 @@ export default function Login() {
     <div className="login-wrap">
       <form className="login-card" onSubmit={submit}>
         <div>
-          <div className="brand" style={{ fontSize: 22 }}>AMC Bank</div>
-          <div className="muted">Sign in to continue</div>
+          <div className="brand" style={{ fontSize: 22 }}>{APP_NAME}</div>
+          <div className="muted">Sign in to your bank</div>
         </div>
 
         {error && <div className="banner">{error}</div>}
+
+        <div className="field">
+          <label htmlFor="tenant">Bank code</label>
+          <input id="tenant" name="tenant" value={form.tenant} onChange={change}
+                 autoComplete="organization" placeholder="e.g. amc-bank" />
+        </div>
 
         <div className="field">
           <label htmlFor="username">Username</label>
@@ -55,7 +71,9 @@ export default function Login() {
         </div>
 
         <button type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
-             </form>
+
+        <div className="muted">New here? <Link to="/signup">Register your bank</Link></div>
+      </form>
     </div>
   )
 }
