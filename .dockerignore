@@ -1,0 +1,13 @@
+.git
+.github
+.env
+config
+node_modules
+target
+bin
+dist
+*.log
+# the Java tests are not needed to build either image
+src/test
+*.pdf
+report.html

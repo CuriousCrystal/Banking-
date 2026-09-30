@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend tests (H2)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+      - run: mvn -B verify
+
+  mysql:
+    # The tests run on H2. This job boots the production build against a real MySQL 8, so a migration or
+    # schema-validation problem that only MySQL shows cannot reach main.
+    name: Boots on MySQL 8 (Flyway + schema validation)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: bfsi
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+      - run: mvn -B -q -DskipTests package
+      - name: Start the app (prod profile) and wait until it is ready
+        env:
+          SPRING_PROFILES_ACTIVE: prod
+          DB_URL: jdbc:mysql://localhost:3306/bfsi?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          export JWT_SECRET="$(openssl rand -base64 48)"
+          java -jar target/*.jar > app.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fs http://localhost:8081/actuator/health/readiness > /dev/null; then
+              echo "ready after about $((i * 2))s"; exit 0
+            fi
+            sleep 2
+          done
+          cat app.log
+          exit 1
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  docker:
+    name: Docker images build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t bfsi-backend .
+      - run: docker build -f deploy/frontend.Dockerfile -t bfsi-frontend .
