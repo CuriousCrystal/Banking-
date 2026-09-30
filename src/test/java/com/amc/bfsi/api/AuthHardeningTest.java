@@ -33,7 +33,7 @@ class AuthHardeningTest {
 
     @Test
     void meNeedsAToken() {
-        // used to be a 500 (NullPointerException on the missing authentication)
+        // it used to sit under the public /api/auth/** rule; it must only answer to a signed-in user
         assertThat(api.call(null, HttpMethod.GET, "/api/auth/me", null).getStatusCode())
                 .isEqualTo(HttpStatus.UNAUTHORIZED);
     }

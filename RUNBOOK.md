@@ -220,7 +220,7 @@ The single-bank app became a multi-tenant SaaS foundation — architecture and d
 - **Schema under Flyway** — `resources/db/migration/V1__init_schema.sql`, Hibernate only validates it. The default database is now **`bfsi_saas`**; your old `bfsi_db` is untouched (a build that expects Flyway cannot adopt a Hibernate-created schema)
 - **Profiles** — `dev` (default), `h2`, `prod`; production takes every secret from environment variables and refuses to start without them; the JWT key committed in the repo is dev-only
 - **Ops** — health probes and Prometheus metrics (Actuator), OpenAPI at `/swagger-ui.html` (dev/h2), `Dockerfile`, `docker-compose.yml`, nginx config, GitHub Actions CI
-- **Hardening** — rate limiting on login/signup, no exception text in 500 responses, `/auth/me` answers 401 (was 500) without a token, Spring MVC client errors are 4xx (were 500), the H2 console exists only in the `h2` profile
+- **Hardening** — rate limiting on login/signup, no exception text in 500 responses, `/auth/me` now needs a token (it used to be open to anonymous callers), Spring MVC client errors such as an unknown URL or a non-numeric id are answered 404/400 instead of falling into the catch-all 500, the H2 console exists only in the `h2` profile
 - **Tests** — 36 (was 18). `ApiSecurityTest` used to run against the real MySQL; every test is now hermetic
 
 Files: `pom.xml`, `resources/application*.properties`, `resources/db/migration/`, `java/…/{tenant,entity,repository,service,controller,security,exception,config}`, `src/{pages,components,api,config.js}`, `src/test/`, `Dockerfile`, `docker-compose.yml`, `deploy/`, `.env.example`, `.dockerignore`, `.github/workflows/ci.yml`.
