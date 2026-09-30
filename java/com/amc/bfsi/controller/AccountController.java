@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -24,8 +25,9 @@ public class AccountController {
 
     @GetMapping
     @Transactional(readOnly = true)
-    public List<AccountResponse> findAll(@RequestParam(required = false) Long customerId) {
-        return service.findAll(customerId).stream().map(AccountResponse::of).toList();
+    public List<AccountResponse> findAll(@RequestParam(required = false) Long customerId,
+                                         @RequestParam(required = false) String status) {
+        return service.findAll(customerId, status).stream().map(AccountResponse::of).toList();
     }
 
     @GetMapping("/{id}")
@@ -41,13 +43,13 @@ public class AccountController {
     }
 
     @PatchMapping("/{id}/deposit")
-    public AccountResponse deposit(@PathVariable Long id, @RequestBody Map<String, Double> body) {
-        return AccountResponse.of(service.deposit(id, body.getOrDefault("amount", 0.0)));
+    public AccountResponse deposit(@PathVariable Long id, @RequestBody Map<String, BigDecimal> body) {
+        return AccountResponse.of(service.deposit(id, body.getOrDefault("amount", BigDecimal.ZERO)));
     }
 
     @PatchMapping("/{id}/withdraw")
-    public AccountResponse withdraw(@PathVariable Long id, @RequestBody Map<String, Double> body) {
-        return AccountResponse.of(service.withdraw(id, body.getOrDefault("amount", 0.0)));
+    public AccountResponse withdraw(@PathVariable Long id, @RequestBody Map<String, BigDecimal> body) {
+        return AccountResponse.of(service.withdraw(id, body.getOrDefault("amount", BigDecimal.ZERO)));
     }
 
     @DeleteMapping("/{id}")

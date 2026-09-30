@@ -1,5 +1,6 @@
 package com.amc.bfsi.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -8,11 +9,11 @@ public class SummaryResponse {
     private long customers;
     private long accounts;
     private long activeLoans;
-    private double totalDeposits;
+    private BigDecimal totalDeposits;
     private List<Map<String, Object>> loansByType;
     private List<Map<String, Object>> depositsByCity;
 
-    public SummaryResponse(long customers, long accounts, long activeLoans, double totalDeposits,
+    public SummaryResponse(long customers, long accounts, long activeLoans, BigDecimal totalDeposits,
                            List<Map<String, Object>> loansByType,
                            List<Map<String, Object>> depositsByCity) {
         this.customers = customers;
@@ -26,7 +27,7 @@ public class SummaryResponse {
     public long getCustomers() { return customers; }
     public long getAccounts() { return accounts; }
     public long getActiveLoans() { return activeLoans; }
-    public double getTotalDeposits() { return totalDeposits; }
+    public BigDecimal getTotalDeposits() { return totalDeposits; }
     public List<Map<String, Object>> getLoansByType() { return loansByType; }
     public List<Map<String, Object>> getDepositsByCity() { return depositsByCity; }
 }

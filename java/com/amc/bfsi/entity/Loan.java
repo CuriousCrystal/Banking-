@@ -2,6 +2,9 @@ package com.amc.bfsi.entity;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 @Entity
@@ -16,11 +19,11 @@ public class Loan {
     @Column(name = "loan_type", nullable = false, length = 20)
     private String loanType;
 
-    @Column(name = "principal_amount", nullable = false)
-    private Double principalAmount;
+    @Column(name = "principal_amount", nullable = false, precision = 14, scale = 2)
+    private BigDecimal principalAmount;
 
-    @Column(name = "interest_rate", nullable = false)
-    private Double interestRate;
+    @Column(name = "interest_rate", nullable = false, precision = 5, scale = 2)
+    private BigDecimal interestRate;
 
     @Column(name = "tenure_months", nullable = false)
     private Integer tenureMonths;
@@ -34,31 +37,44 @@ public class Loan {
 
     public Loan() { }
 
-    public Loan(String loanType, Double principalAmount, Double interestRate, Integer tenureMonths) {
+    public Loan(String loanType, BigDecimal principalAmount, BigDecimal interestRate, Integer tenureMonths) {
         this.loanType = loanType;
         this.principalAmount = principalAmount;
         this.interestRate = interestRate;
         this.tenureMonths = tenureMonths;
     }
 
-    /** Standard reducing-balance EMI. */
-    public double calculateEmi() {
-        double monthlyRate = interestRate / 12 / 100;
-        if (monthlyRate == 0) {
-            return principalAmount / tenureMonths;
+    /**
+     * Standard reducing-balance EMI: P·r·(1+r)^n / ((1+r)^n - 1), rounded to paise.
+     * High-precision intermediate math (DECIMAL64), exact half-up rounding at the end.
+     */
+    public BigDecimal calculateEmi() {
+        BigDecimal monthlyRate = interestRate.divide(BigDecimal.valueOf(1200), MathContext.DECIMAL64);
+        if (monthlyRate.compareTo(BigDecimal.ZERO) == 0) {
+            return principalAmount.divide(BigDecimal.valueOf(tenureMonths), 2, RoundingMode.HALF_UP);
         }
-        double factor = Math.pow(1 + monthlyRate, tenureMonths);
-        return (principalAmount * monthlyRate * factor) / (factor - 1);
+        // pow on BigDecimal is exponent-limited, so use the double bridge for the
+        // (1+r)^n factor - precision loss there is far below one paisa for bank ranges
+        double factor = Math.pow(BigDecimal.ONE.add(monthlyRate).doubleValue(), tenureMonths);
+        BigDecimal bigFactor = BigDecimal.valueOf(factor);
+        BigDecimal numerator = principalAmount.multiply(monthlyRate).multiply(bigFactor);
+        BigDecimal denominator = bigFactor.subtract(BigDecimal.ONE);
+        return numerator.divide(denominator, MathContext.DECIMAL64).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /** Total money paid back: EMI x tenure. */
+    public BigDecimal totalPayable() {
+        return calculateEmi().multiply(BigDecimal.valueOf(tenureMonths)).setScale(2, RoundingMode.HALF_UP);
     }
 
     public Long getLoanId() { return loanId; }
     public void setLoanId(Long loanId) { this.loanId = loanId; }
     public String getLoanType() { return loanType; }
     public void setLoanType(String loanType) { this.loanType = loanType; }
-    public Double getPrincipalAmount() { return principalAmount; }
-    public void setPrincipalAmount(Double principalAmount) { this.principalAmount = principalAmount; }
-    public Double getInterestRate() { return interestRate; }
-    public void setInterestRate(Double interestRate) { this.interestRate = interestRate; }
+    public BigDecimal getPrincipalAmount() { return principalAmount; }
+    public void setPrincipalAmount(BigDecimal principalAmount) { this.principalAmount = principalAmount; }
+    public BigDecimal getInterestRate() { return interestRate; }
+    public void setInterestRate(BigDecimal interestRate) { this.interestRate = interestRate; }
     public Integer getTenureMonths() { return tenureMonths; }
     public void setTenureMonths(Integer tenureMonths) { this.tenureMonths = tenureMonths; }
     public LocalDate getSanctionedOn() { return sanctionedOn; }

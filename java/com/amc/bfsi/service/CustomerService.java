@@ -9,6 +9,7 @@ import com.amc.bfsi.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -69,7 +70,7 @@ public class CustomerService {
         Customer customer = findById(id);
 
         boolean holdsMoney = customer.getAccounts().stream()
-                .anyMatch(a -> a.getBalance() != null && a.getBalance() > 0);
+                .anyMatch(a -> a.getBalance() != null && a.getBalance().compareTo(BigDecimal.ZERO) > 0);
         if (holdsMoney) {
             throw new BusinessRuleException(
                     "Customer still holds a balance - close the accounts first");

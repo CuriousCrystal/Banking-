@@ -115,14 +115,15 @@ Authorization: Bearer <token>
 | POST | `/customers` | any | Validated body: name, email, city, panNumber (unique) |
 | PUT | `/customers/{id}` | any | Update |
 | DELETE | `/customers/{id}` | **ADMIN** | Clerk/officer → 403 |
-| GET | `/accounts` | any | `?customerId=` filter |
+| GET | `/accounts` | any | `?customerId=` and `?status=ACTIVE\|FROZEN\|CLOSED` filters |
 | POST | `/accounts` | any | `{customerId, accountType, balance}` |
 | PATCH | `/accounts/{id}/deposit` | any | `{amount}` |
-| PATCH | `/accounts/{id}/withdraw` | any | `{amount}` — 400 if insufficient balance |
-| DELETE | `/accounts/{id}` | **ADMIN** | |
+| PATCH | `/accounts/{id}/withdraw` | any | `{amount}` — 422 if insufficient balance (all account types) |
+| DELETE | `/accounts/{id}` | **ADMIN** | **Soft-close** — sets status CLOSED, row is kept for audit; only zero-balance accounts |
 | GET | `/loans` | OFFICER/ADMIN | Clerk → 403 |
 | POST | `/loans` | OFFICER/ADMIN | `{customerId, loanType, principalAmount, interestRate, tenureMonths}` |
 | GET | `/loans/customer/{id}` | OFFICER/ADMIN | |
+| GET | `/loans/{id}/emi` | OFFICER/ADMIN | EMI breakdown: `monthlyEmi`, `totalPayable`, `totalInterest` (BigDecimal-exact) |
 | GET | `/users` | **ADMIN** | |
 | POST | `/users` | **ADMIN** | `{username, password, role}` |
 | PATCH | `/users/{id}/password` | **ADMIN** | `{password}` |
@@ -153,6 +154,8 @@ H2 console (only when running the `h2` profile): http://localhost:8080/h2-consol
 | `Public Key Retrieval is not allowed` | MySQL 8 auth handshake | `allowPublicKeyRetrieval=true` in the JDBC URL (already added) |
 | `Access denied for user 'root'@'localhost'` | Wrong or missing MySQL password | Set `DB_PASSWORD`, or fix `spring.datasource.password` in `config/application.properties` |
 | `Port 8080 was already in use` | Old backend still running | `netstat -ano \| findstr :8080` → `taskkill //F //PID <pid>` |
+| 409 on a deposit/withdraw | Two requests updated the same account concurrently | Reload and retry — optimistic locking working as designed |
+| Deposit to a closed account → 422 | Soft-closed accounts reject transactions | Expected behavior (was impossible before the status column) |
 | UI shows blank page / `React is not defined` in console | Missing `vite.config.js` | Fixed — the file now exists; restart `npm run dev` |
 | `ERR_CONNECTION` from UI | Backend not running | Start backend first, then refresh |
 | 401 on every API call after an hour | JWT expired | Log in again (UI does this automatically) |
@@ -160,7 +163,28 @@ H2 console (only when running the `h2` profile): http://localhost:8080/h2-consol
 
 ---
 
-## 7. Files changed to make this run (2026-09-30)
+## 7. Tests
+
+```bash
+mvn test
+```
+18 tests in 3 classes, all against the in-memory H2 profile (no MySQL needed):
+- `AccountServiceTest` — deposit/withdraw arithmetic (BigDecimal-exact), insufficient-balance rule, savings minimum, soft-close behavior
+- `LoanEmiTest` — EMI math against independently computed reference values
+- `ApiSecurityTest` — full HTTP stack: public health, JWT login, 401 without token, 403 for clerk deletes
+
+Run after any backend change — it is the fastest way to catch regressions.
+
+## 8. Hardening upgrade (2026-09-30, post-training)
+
+- **Money is `BigDecimal`** everywhere (entities, DTOs, services) — no more floating-point rounding on balances/EMIs; JSON still arrives as numbers so the UI needed no format changes
+- **Optimistic locking** — `@Version` on Account; a lost update race returns **409** with a retry message instead of silently corrupting a balance
+- **Withdraw rule tightened** — no account type may go below zero (CURRENT previously could)
+- **Accounts soft-close** — `account_status` column (ACTIVE/FROZEN/CLOSED); close keeps the row for audit; CLOSED accounts reject deposit/withdraw (422)
+- **New account numbers** are generated pre-insert (`AC` + 6 digits, uniqueness-checked) — fixes a latent bug where the number was derived from the DB id after insert
+- **Loan EMI endpoint** — see table above; also surfaced in the Loans page via the "EMI breakdown" button
+
+## 9. Files changed to make this run (2026-09-30)
 
 - `pom.xml` — added `<sourceDirectory>java</sourceDirectory>` + `<resources>` pointing at `resources/`
 - `resources/application.properties` — `allowPublicKeyRetrieval=true` in URL; password read from `DB_PASSWORD` / `config/application.properties`

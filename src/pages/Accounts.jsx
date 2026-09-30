@@ -104,7 +104,7 @@ export default function Accounts() {
       {loading ? <p className="muted">Loading…</p> : !shown.length ? <p className="muted">No accounts match.</p> : (
         <table>
           <thead>
-            <tr><th>Account no</th><th>Type</th><th>Customer</th><th>Balance</th><th>Opened</th><th>Actions</th></tr>
+            <tr><th>Account no</th><th>Type</th><th>Customer</th><th>Balance</th><th>Status</th><th>Opened</th><th>Actions</th></tr>
           </thead>
           <tbody>
             {shown.map((a) => (
@@ -113,10 +113,15 @@ export default function Accounts() {
                 <td>{a.accountType}</td>
                 <td><Link to={`/customers/${a.customerId}`}>{a.customerName}</Link></td>
                 <td>{money.format(a.balance)}</td>
+                <td>{a.accountStatus === 'ACTIVE'
+                  ? <span style={{ color: '#1a7f37' }}>ACTIVE</span>
+                  : <span style={{ color: '#b3261e', fontWeight: 600 }}>{a.accountStatus}</span>}</td>
                 <td>{a.openedOn}</td>
                 <td style={{ display: 'flex', gap: 10 }}>
-                  <button className="link" onClick={() => setTxn({ account: a, kind: 'deposit', amount: '' })}>Deposit</button>
-                  <button className="link" onClick={() => setTxn({ account: a, kind: 'withdraw', amount: '' })}>Withdraw</button>
+                  {a.accountStatus === 'ACTIVE' && <>
+                    <button className="link" onClick={() => setTxn({ account: a, kind: 'deposit', amount: '' })}>Deposit</button>
+                    <button className="link" onClick={() => setTxn({ account: a, kind: 'withdraw', amount: '' })}>Withdraw</button>
+                  </>}
                 </td>
               </tr>
             ))}

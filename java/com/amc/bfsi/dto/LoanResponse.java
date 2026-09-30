@@ -2,16 +2,18 @@ package com.amc.bfsi.dto;
 
 import com.amc.bfsi.entity.Loan;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 public class LoanResponse {
 
     private Long loanId;
     private String loanType;
-    private Double principalAmount;
-    private Double interestRate;
+    private BigDecimal principalAmount;
+    private BigDecimal interestRate;
     private Integer tenureMonths;
-    private Double emi;
+    private BigDecimal emi;
     private LocalDate sanctionedOn;
     private Long customerId;
     private String customerName;
@@ -23,7 +25,7 @@ public class LoanResponse {
         r.principalAmount = l.getPrincipalAmount();
         r.interestRate = l.getInterestRate();
         r.tenureMonths = l.getTenureMonths();
-        r.emi = Math.round(l.calculateEmi() * 100) / 100.0;
+        r.emi = l.calculateEmi();                     // already 2dp, HALF_UP
         r.sanctionedOn = l.getSanctionedOn();
         if (l.getCustomer() != null) {
             r.customerId = l.getCustomer().getCustomerId();
@@ -34,10 +36,10 @@ public class LoanResponse {
 
     public Long getLoanId() { return loanId; }
     public String getLoanType() { return loanType; }
-    public Double getPrincipalAmount() { return principalAmount; }
-    public Double getInterestRate() { return interestRate; }
+    public BigDecimal getPrincipalAmount() { return principalAmount; }
+    public BigDecimal getInterestRate() { return interestRate; }
     public Integer getTenureMonths() { return tenureMonths; }
-    public Double getEmi() { return emi; }
+    public BigDecimal getEmi() { return emi; }
     public LocalDate getSanctionedOn() { return sanctionedOn; }
     public Long getCustomerId() { return customerId; }
     public String getCustomerName() { return customerName; }

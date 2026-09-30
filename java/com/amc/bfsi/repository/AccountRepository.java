@@ -4,6 +4,7 @@ import com.amc.bfsi.entity.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
@@ -13,7 +14,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     boolean existsByAccountNumber(String accountNumber);
 
     @Query("select coalesce(sum(a.balance), 0) from Account a")
-    double totalDeposits();
+    BigDecimal totalDeposits();
 
     @Query("select a.customer.city, coalesce(sum(a.balance), 0) from Account a group by a.customer.city")
     List<Object[]> depositsByCity();

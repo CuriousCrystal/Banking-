@@ -55,6 +55,14 @@ public class GlobalExceptionHandler {
         return body(HttpStatus.FORBIDDEN, "Your role is not allowed to perform this action", null);
     }
 
+    // two requests updated the same row concurrently - the loser gets 409 and can retry
+    @ExceptionHandler(org.springframework.orm.ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, Object>> optimisticLock(
+            org.springframework.orm.ObjectOptimisticLockingFailureException ex) {
+        return body(HttpStatus.CONFLICT,
+                "This record was just modified by another transaction - reload and retry", null);
+    }
+
     @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<Map<String, Object>> methodNotAllowed(
             org.springframework.web.HttpRequestMethodNotSupportedException ex) {

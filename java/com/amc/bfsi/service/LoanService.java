@@ -4,17 +4,20 @@ import com.amc.bfsi.dto.LoanRequest;
 import com.amc.bfsi.entity.Customer;
 import com.amc.bfsi.entity.Loan;
 import com.amc.bfsi.exception.BusinessRuleException;
+import com.amc.bfsi.exception.ResourceNotFoundException;
 import com.amc.bfsi.repository.LoanRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.List;
 
 @Service
 public class LoanService {
 
     private static final int MAX_ACTIVE_LOANS = 3;
-    private static final double MIN_HOLDING_RATIO = 0.10;
+    private static final BigDecimal MIN_HOLDING_RATIO = new BigDecimal("0.10");
 
     private final LoanRepository loanRepository;
     private final CustomerService customerService;
@@ -33,6 +36,11 @@ public class LoanService {
         return loanRepository.findByCustomerCustomerId(customerId);
     }
 
+    public Loan findById(Long id) {
+        return loanRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Loan " + id + " not found"));
+    }
+
     @Transactional
     public Loan sanction(LoanRequest request) {
 
@@ -44,11 +52,12 @@ public class LoanService {
                     "Customer already has " + active + " active loans");
         }
 
-        double holding = customer.getAccounts().stream()
-                .mapToDouble(a -> a.getBalance() == null ? 0 : a.getBalance())
-                .sum();
+        BigDecimal holding = customer.getAccounts().stream()
+                .map(a -> a.getBalance() == null ? BigDecimal.ZERO : a.getBalance())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        if (holding < request.getPrincipalAmount() * MIN_HOLDING_RATIO) {
+        BigDecimal required = request.getPrincipalAmount().multiply(MIN_HOLDING_RATIO);
+        if (holding.compareTo(required) < 0) {
             throw new BusinessRuleException(
                     "Customer must hold at least 10% of the loan amount across accounts");
         }

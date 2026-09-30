@@ -71,32 +71,32 @@ public class DataSeeder implements CommandLineRunner {
     private void seedCustomers() {
         //         name       email                  city         PAN
         customer("Arjun",   "arjun@example.com",   "Bangalore", "ARJPK1001A",
-                 acc(AccountType.SAVINGS, 85000.0), acc(AccountType.CURRENT, 240000.0),
-                 loan("HOME", 1500000.0, 8.4, 240));
+                 acc(AccountType.SAVINGS, "85000.00"), acc(AccountType.CURRENT, "240000.00"),
+                 loan("HOME", "1500000.00", "8.40", 240));
         customer("Priya",   "priya@example.com",   "Mumbai",    "PRYPM1002B",
-                 acc(AccountType.SAVINGS, 62000.0),
-                 loan("CAR", 450000.0, 9.1, 60));
+                 acc(AccountType.SAVINGS, "62000.00"),
+                 loan("CAR", "450000.00", "9.10", 60));
         customer("Karthik", "karthik@example.com", "Chennai",   "KRTPC1003C",
-                 acc(AccountType.SAVINGS, 120000.0),
-                 loan("PERSONAL", 200000.0, 12.5, 36));
+                 acc(AccountType.SAVINGS, "120000.00"),
+                 loan("PERSONAL", "200000.00", "12.50", 36));
         customer("Divya",   "divya@example.com",   "Bangalore", "DVYPB1004D",
-                 acc(AccountType.SAVINGS, 45000.0), acc(AccountType.CURRENT, 90000.0));
+                 acc(AccountType.SAVINGS, "45000.00"), acc(AccountType.CURRENT, "90000.00"));
         customer("Suresh",  "suresh@example.com",  "Mumbai",    "SRSPM1005E",
-                 acc(AccountType.CURRENT, 310000.0),
-                 loan("HOME", 2500000.0, 8.6, 300), loan("CAR", 600000.0, 9.0, 60));
+                 acc(AccountType.CURRENT, "310000.00"),
+                 loan("HOME", "2500000.00", "8.60", 300), loan("CAR", "600000.00", "9.00", 60));
         customer("Meena",   "meena@example.com",   "Chennai",   "MNAPC1006F",
-                 acc(AccountType.SAVINGS, 38000.0));
+                 acc(AccountType.SAVINGS, "38000.00"));
         customer("Rahul",   "rahul@example.com",   "Bangalore", "RHLPB1007G",
-                 acc(AccountType.SAVINGS, 150000.0),
-                 loan("PERSONAL", 300000.0, 11.9, 48));
+                 acc(AccountType.SAVINGS, "150000.00"),
+                 loan("PERSONAL", "300000.00", "11.90", 48));
         customer("Anjali",  "anjali@example.com",  "Mumbai",    "ANJPM1008H",
-                 acc(AccountType.SAVINGS, 72000.0), acc(AccountType.CURRENT, 55000.0),
-                 loan("CAR", 500000.0, 9.3, 72));
+                 acc(AccountType.SAVINGS, "72000.00"), acc(AccountType.CURRENT, "55000.00"),
+                 loan("CAR", "500000.00", "9.30", 72));
         customer("Vijay",   "vijay@example.com",   "Chennai",   "VJYPC1009J",
-                 acc(AccountType.CURRENT, 180000.0),
-                 loan("HOME", 1200000.0, 8.5, 180));
+                 acc(AccountType.CURRENT, "180000.00"),
+                 loan("HOME", "1200000.00", "8.50", 180));
         customer("Neha",    "neha@example.com",    "Bangalore", "NHAPB1010K",
-                 acc(AccountType.SAVINGS, 28000.0));
+                 acc(AccountType.SAVINGS, "28000.00"));
     }
 
     private int accountSeq = 9001;   // demo account numbers AC9001, AC9002, ...
@@ -121,11 +121,11 @@ public class DataSeeder implements CommandLineRunner {
         customerRepository.save(c);                   // cascade saves the accounts and loans too
     }
 
-    private static Account acc(AccountType type, double balance) {
-        return new Account(type, balance);
+    private static Account acc(AccountType type, String balance) {
+        return new Account(type, new java.math.BigDecimal(balance));
     }
 
-    private static Loan loan(String type, double principal, double rate, int months) {
-        return new Loan(type, principal, rate, months);
+    private static Loan loan(String type, String principal, String rate, int months) {
+        return new Loan(type, new java.math.BigDecimal(principal), new java.math.BigDecimal(rate), months);
     }
 }

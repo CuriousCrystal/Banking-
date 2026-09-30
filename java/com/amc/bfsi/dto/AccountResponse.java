@@ -2,6 +2,7 @@ package com.amc.bfsi.dto;
 
 import com.amc.bfsi.entity.Account;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class AccountResponse {
@@ -9,7 +10,9 @@ public class AccountResponse {
     private Long accountId;
     private String accountNumber;
     private String accountType;
-    private Double balance;
+    private BigDecimal balance;
+    private String accountStatus;
+    private Long version;
     private LocalDate openedOn;
     private Long customerId;
     private String customerName;
@@ -20,6 +23,8 @@ public class AccountResponse {
         r.accountNumber = a.getAccountNumber();
         r.accountType = a.getAccountType().name();
         r.balance = a.getBalance();
+        r.accountStatus = a.getAccountStatus().name();
+        r.version = a.getVersion();
         r.openedOn = a.getOpenedOn();
         if (a.getCustomer() != null) {
             r.customerId = a.getCustomer().getCustomerId();
@@ -31,7 +36,9 @@ public class AccountResponse {
     public Long getAccountId() { return accountId; }
     public String getAccountNumber() { return accountNumber; }
     public String getAccountType() { return accountType; }
-    public Double getBalance() { return balance; }
+    public BigDecimal getBalance() { return balance; }
+    public String getAccountStatus() { return accountStatus; }
+    public Long getVersion() { return version; }
     public LocalDate getOpenedOn() { return openedOn; }
     public Long getCustomerId() { return customerId; }
     public String getCustomerName() { return customerName; }

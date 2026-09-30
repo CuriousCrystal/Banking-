@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { loanApi } from '../api/api'
 
+const money2 = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 2 })
+
 const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })
 
 export default function Loans() {
@@ -9,6 +11,18 @@ export default function Loans() {
   const [type, setType] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [breakdown, setBreakdown] = useState(null)   // full EMI breakdown of the expanded loan
+  const [breakdownFor, setBreakdownFor] = useState(null) // loanId currently expanded
+  const [breakdownBusy, setBreakdownBusy] = useState(false)
+
+  const toggleEmi = (loanId) => {
+    if (breakdownFor === loanId) { setBreakdownFor(null); setBreakdown(null); return }
+    setBreakdownFor(loanId); setBreakdown(null); setBreakdownBusy(true)
+    loanApi.emi(loanId)
+      .then(setBreakdown)
+      .catch((err) => setError(err.message))
+      .finally(() => setBreakdownBusy(false))
+  }
 
   useEffect(() => {
     loanApi.getAll()
@@ -52,7 +66,7 @@ export default function Loans() {
         <table>
           <thead>
             <tr><th>Loan id</th><th>Customer</th><th>Type</th><th>Principal</th><th>Rate</th>
-              <th>Tenure</th><th>EMI</th><th>Sanctioned</th></tr>
+              <th>Tenure</th><th>EMI</th><th>Sanctioned</th><th></th></tr>
           </thead>
           <tbody>
             {shown.map((l) => (
@@ -65,10 +79,29 @@ export default function Loans() {
                 <td>{l.tenureMonths} m</td>
                 <td>{money.format(l.emi)}</td>
                 <td>{l.sanctionedOn}</td>
+                <td><button className="link" onClick={() => toggleEmi(l.loanId)}>
+                  {breakdownFor === l.loanId ? 'Hide EMI' : 'EMI breakdown'}</button></td>
               </tr>
             ))}
           </tbody>
         </table>
+      )}
+
+      {breakdownFor && (
+        <div className="card" style={{ marginTop: 14, maxWidth: 480 }}>
+          <div className="muted">EMI breakdown · loan #{breakdownFor}</div>
+          {breakdownBusy ? <p className="muted">Calculating…</p> : !breakdown ? null : (
+            <table style={{ marginTop: 6 }}>
+              <tbody>
+                <tr><td>Principal</td><td>{money2.format(breakdown.principalAmount)}</td></tr>
+                <tr><td>Interest rate</td><td>{breakdown.interestRate}% for {breakdown.tenureMonths} months</td></tr>
+                <tr><td><strong>Monthly EMI</strong></td><td><strong>{money2.format(breakdown.monthlyEmi)}</strong></td></tr>
+                <tr><td>Total interest</td><td>{money2.format(breakdown.totalInterest)}</td></tr>
+                <tr><td>Total payable</td><td>{money2.format(breakdown.totalPayable)}</td></tr>
+              </tbody>
+            </table>
+          )}
+        </div>
       )}
     </>
   )

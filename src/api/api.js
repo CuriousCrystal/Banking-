@@ -25,7 +25,8 @@ export const accountApi = {
 export const loanApi = {
   getAll: () => http.get('/loans').then((r) => r.data),
   sanction: (payload) => http.post('/loans', payload).then((r) => r.data),
-  byCustomer: (customerId) => http.get(`/loans/customer/${customerId}`).then((r) => r.data)
+  byCustomer: (customerId) => http.get(`/loans/customer/${customerId}`).then((r) => r.data),
+  emi: (loanId) => http.get(`/loans/${loanId}/emi`).then((r) => r.data)
 }
 
 export const userApi = {

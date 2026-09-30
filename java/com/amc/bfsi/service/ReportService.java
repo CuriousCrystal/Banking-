@@ -6,6 +6,8 @@ import com.amc.bfsi.repository.CustomerRepository;
 import com.amc.bfsi.repository.LoanRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,7 +33,7 @@ public class ReportService {
                 customerRepository.count(),
                 accountRepository.count(),
                 loanRepository.count(),
-                Math.round(accountRepository.totalDeposits() * 100) / 100.0,
+                accountRepository.totalDeposits().setScale(2, RoundingMode.HALF_UP),
                 pairs(loanRepository.countByType()),
                 pairs(accountRepository.depositsByCity()));
     }
