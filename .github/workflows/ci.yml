@@ -1,9 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
+  push:                  # every branch, so a feature branch is checked before it becomes a pull request
   pull_request:
+  workflow_dispatch:     # "Run workflow" button in the Actions tab
 
 jobs:
   backend:
