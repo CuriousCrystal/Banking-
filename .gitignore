@@ -1,0 +1,33 @@
+# --- AI assistant files (kept local) ---
+CLAUDE.md
+claude.md
+FREEBUFF.md
+freebuff.md
+.claude/
+.freebuff/
+
+# --- Local secrets / overrides (anchored: java/com/amc/bfsi/config/ is source code) ---
+/config/
+.env
+.env.local
+
+# --- Build output & dependencies ---
+target/
+bin/
+dist/
+node_modules/
+
+# --- Logs ---
+*.log
+
+# --- IDE metadata ---
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+.vscode/
+
+# --- Course handouts (third-party material, not part of the app) ---
+Java-7-8-9-New-Features-Handout.pdf
+Java_Definitions.pdf

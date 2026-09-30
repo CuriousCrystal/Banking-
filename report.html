@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AMC Bank — BFSI Full-Stack Banking Application — 8-Day Project Report</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; color:#1c2733; line-height:1.5; margin:0; font-size:11pt; }
+  header { border-bottom:3px solid #0f3d5c; padding-bottom:10px; margin-bottom:18px; }
+  h1 { font-size:21pt; margin:0 0 4px; color:#0f3d5c; }
+  .sub { color:#5a6a78; font-size:11pt; margin:0; }
+  h2 { font-size:15pt; color:#0f3d5c; border-bottom:2px solid #d7e2ea; padding-bottom:4px; margin:26px 0 10px; page-break-after:avoid; }
+  h3 { font-size:12pt; margin:16px 0 4px; color:#134e74; page-break-after:avoid; }
+  p { margin:6px 0; }
+  .day { margin-bottom:14px; page-break-inside:avoid; }
+  .day b.date { color:#7a8a97; font-weight:600; font-size:10pt; }
+  table { width:100%; border-collapse:collapse; margin:8px 0; font-size:10pt; }
+  th { background:#0f3d5c; color:#fff; text-align:left; padding:6px 8px; }
+  td { border:1px solid #d7e2ea; padding:5px 8px; vertical-align:top; }
+  tr { page-break-inside:avoid; }
+  tr:nth-child(even) td { background:#f2f6f9; }
+  blockquote { margin:12px 0; padding:10px 16px; border-left:4px solid #0f3d5c; background:#f5f8fa; font-style:italic; }
+  blockquote p { margin:8px 0; }
+  .page-break { page-break-before:always; }
+  .ok { color:#1a7f37; font-weight:600; }
+  code { background:#eef2f6; padding:0 3px; border-radius:3px; font-size:10pt; }
+  footer { margin-top:22px; border-top:1px solid #d7e2ea; padding-top:8px; color:#7a8a97; font-size:9pt; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AMC Bank — BFSI Full-Stack Banking Application</h1>
+  <p class="sub">8-Day Project Report · Tools &amp; Technologies · Presentation Speech</p>
+  <p class="sub">Java Full-Stack Training Project · September 21–30, 2026</p>
+</header>
+
+<h2>1. The Project in One Paragraph</h2>
+<p>We built <b>AMC Bank</b>, a working internet-banking back office: a <b>Spring Boot REST API</b> secured with
+<b>JWT login and role-based access</b> (Admin / Officer / Clerk), backed by a <b>MySQL</b> database, and a
+<b>React dashboard</b> that shows live figures — customers, accounts, loans and deposits — with charts.
+Every endpoint was tested in <b>Postman</b>, and the whole stack runs end-to-end on one machine
+(verified September 30: backend on port 8080, frontend on port 5173).</p>
+
+<h2>2. The Work, Day by Day (8 Segments)</h2>
+
+<div class="day"><h3>Day 1 — Foundation &amp; Environment</h3>
+<p class="date"><b>Sep 21 · commit “first commit”</b></p>
+<p>Installed and verified the toolchain: JDK, Maven, Node.js, MySQL 8 as a Windows service, Eclipse (Spring Tools),
+Postman, Git. Created the project repository and the Maven folder layout for the BFSI domain.
+<span class="ok">Outcome: a clean, version-controlled workspace.</span></p></div>
+
+<div class="day"><h3>Day 2 — Core Java &amp; Spring Fundamentals</h3>
+<p class="date"><b>Sep 23 · commits “collection and spring core”</b></p>
+<p>Revised collections through banking-flavoured demos — <code>ArrayList</code> for passbooks, <code>HashMap</code> for balances,
+<code>Queue</code> for cheque processing, <code>HashSet</code> to block duplicate PANs — plus equals/hashCode,
+Comparable/Comparator, generics and the exception family (multi-catch, try-with-resources, custom
+<code>BusinessRuleException</code>). Then Spring Core: IoC and dependency injection — the pattern every later class uses.
+<span class="ok">Outcome: language maturity before framework code.</span></p></div>
+
+<div class="day"><h3>Day 3 — HTTP, Maven &amp; API Thinking</h3>
+<p class="date"><b>Sep 24 · commits “html mvn config”, “Api Request Response”</b></p>
+<p>Studied the request/response cycle, HTTP methods and status codes, and JSON. Configured <code>pom.xml</code> with the
+Spring Boot parent and starters (web, data-jpa, validation, security). Practised designing API payloads in Postman
+before writing any controller. <span class="ok">Outcome: contract-first thinking.</span></p></div>
+
+<div class="day"><h3>Day 4 — Database Design &amp; Entities</h3>
+<p class="date"><b>Sep 25 · commits “Schema”, “day04”, “react setup”</b></p>
+<p>Designed the MySQL schema: <code>customer</code>, <code>account</code>, <code>loan</code>, <code>app_user</code> with proper keys and
+relationships (one customer → many accounts/loans). Mapped them as JPA entities (<code>@Entity</code>, <code>@OneToMany</code>,
+cascade + orphan removal) and created Spring Data repositories. Started the React side with Vite, routing and a layout shell.
+<span class="ok">Outcome: the data layer and the frontend skeleton.</span></p></div>
+
+<div class="day"><h3>Day 5 — Business Services &amp; Rules</h3>
+<p class="date"><b>Sep 26 · commits “database”, “pom.xml”, “added statement”</b></p>
+<p>Wrote the service layer: customer CRUD with duplicate-email/PAN guards, account opening with auto-generated numbers
+(AC9001…), and deposit/withdraw with the insufficient-balance rule. Configured the MySQL connection in
+<code>application.properties</code> and added the reporting query behind the dashboard aggregates.
+<span class="ok">Outcome: real banking rules enforced in one place.</span></p></div>
+
+<div class="day"><h3>Day 6 — React Frontend</h3>
+<p class="date"><b>Sep 28 · commit “frontend”</b></p>
+<p>Built the UI screens: Login, Dashboard, Customers list/form/detail, Accounts, Loans, Users — using React Router,
+Axios interceptors (attach the token, handle 401/403 uniformly) and Recharts for the two dashboard charts.
+<span class="ok">Outcome: a complete, role-aware admin console.</span></p></div>
+
+<div class="day"><h3>Day 7 — Security: JWT &amp; Roles</h3>
+<p class="date"><b>Sep 29 · commits “login”, “day08”, “Update AuthController.java”</b></p>
+<p>The deepest day. Spring Security filter chain, stateless sessions, BCrypt password hashing, <code>/api/auth/login</code>
+issuing JWTs (jjwt 0.12), a request filter validating every token, method-level rules (ADMIN only for deletes and user
+management; OFFICER for loans), and uniform JSON error responses for 401/403 — all tested in Postman.
+<span class="ok">Outcome: bank-grade authentication and authorization.</span></p></div>
+
+<div class="day"><h3>Day 8 — Seed Data, Integration &amp; E2E Verification</h3>
+<p class="date"><b>Sep 30 · commit “Add dummy data for customers, accounts, and loans”</b></p>
+<p>Added the <code>DataSeeder</code> (three demo logins + ten customers with accounts and loans), wired the non-standard
+Maven layout (<code>java/</code>, <code>resources/</code>), fixed the MySQL 8 driver flags, and verified the full flow live:
+login → JWT → protected endpoints → dashboard charts, plus 401 without a token and 403 for the wrong role.
+Documented everything in a runbook. <span class="ok">Outcome: a demo-ready, verified product.</span></p></div>
+
+<h2 class="page-break">3. Tools &amp; Technologies Used</h2>
+<table>
+<tr><th style="width:32%">Tool</th><th>Role in the project</th></tr>
+<tr><td><b>Java 17</b></td><td>Core language (compiles to target 17, runs on JDK 25)</td></tr>
+<tr><td><b>Spring Boot 3.2.5</b></td><td>Application framework — REST controllers, dependency injection, auto-configuration</td></tr>
+<tr><td><b>Spring Web (REST)</b></td><td><code>@RestController</code> endpoints: customers, accounts, loans, users, auth, reports</td></tr>
+<tr><td><b>Spring Data JPA / Hibernate</b></td><td>ORM: entities ↔ MySQL tables, repository interfaces, cascade rules</td></tr>
+<tr><td><b>Spring Security + JWT (jjwt)</b></td><td>Stateless login, BCrypt hashing, token filter, role-based access (ADMIN/OFFICER/USER)</td></tr>
+<tr><td><b>Hibernate Validator</b></td><td><code>@Valid</code> request-body validation with field-level error messages</td></tr>
+<tr><td><b>MySQL 8 + Connector/J</b></td><td>Persistent storage (schema <code>bfsi_db</code>, auto-created on boot)</td></tr>
+<tr><td><b>H2 (in-memory)</b></td><td>Zero-setup test/demo database profile</td></tr>
+<tr><td><b>Maven 3.9</b></td><td>Build tool, dependency management, <code>spring-boot:run</code></td></tr>
+<tr><td><b>React 18 + Vite 5</b></td><td>Frontend single-page app with hot reload dev server</td></tr>
+<tr><td><b>React Router 6</b></td><td>Client-side navigation; protected routes per role</td></tr>
+<tr><td><b>Axios</b></td><td>HTTP client: token interceptor and unified error handling</td></tr>
+<tr><td><b>Recharts</b></td><td>Dashboard bar charts (loans by type, deposits by city)</td></tr>
+<tr><td><b>Postman</b></td><td>API testing: every method, role and error case</td></tr>
+<tr><td><b>Eclipse + Spring Tools</b></td><td>IDE for backend development and debugging</td></tr>
+<tr><td><b>Node.js + npm</b></td><td>Frontend runtime and package management</td></tr>
+<tr><td><b>Git / GitHub</b></td><td>Version control — one commit-set per work day</td></tr>
+<tr><td><b>curl</b></td><td>Scripted smoke tests during integration</td></tr>
+</table>
+
+<h2 class="page-break">4. Presentation Speech (≈ 4 minutes)</h2>
+<blockquote>
+<p>Good morning everyone. Over the last eight days I built <b>AMC Bank</b> — a full-stack banking application —
+and I'd like to walk you through what we did, the tools we used, and what I learned.</p>
+<p><b>Where we started.</b> Day one wasn't code — it was foundations. I installed and verified the entire toolchain:
+Java, Maven, MySQL as a Windows service, Eclipse with Spring Tools, Postman and Git. From the very first commit,
+every day's work is visible in version control — a discipline I kept all through the project.</p>
+<p><b>Core Java first.</b> Before touching Spring, I revised collections the practical way: an ArrayList as a passbook,
+a HashMap for balances, a HashSet to catch duplicate PANs, a Queue for cheque processing — plus generics and the full
+exception family. That paid off immediately, because banking code is mostly data structures and edge cases.</p>
+<p><b>Then the API.</b> We designed the REST contract in Postman before writing controllers — request, response,
+status codes. The backend is Spring Boot with three layers: controllers that speak HTTP, services that enforce the
+business rules — like blocking a withdrawal that overdraws an account — and Spring Data repositories that talk to
+MySQL through JPA entities. One customer can hold many accounts and loans, handled with proper cascades.</p>
+<p><b>Security was the deepest day.</b> The API is stateless and token-based: you log in, Spring Security verifies
+BCrypt-hashed passwords and issues a JWT; every request passes through a filter that validates the token. Access is
+role-based — Admin can delete and manage users, Officers sanction loans, Clerks can read and create but not delete.
+Wrong password gets a clean 401; right token but wrong role gets a 403 — all in a uniform JSON error shape the
+frontend understands.</p>
+<p><b>The frontend</b> is a React single-page app built with Vite: a login screen, a dashboard with live figures and
+two charts, and full screens for customers, accounts, loans and users. An Axios interceptor attaches the token to
+every call and reacts automatically when a session expires.</p>
+<p><b>How it was verified.</b> Every endpoint was tested in Postman — happy paths and error paths. On the final day
+I integrated everything end-to-end on real MySQL: seeded demo data, logged in through the UI, watched the dashboard
+pull live numbers — eleven customers, fourteen accounts, nine active loans — and confirmed the security boundaries
+behave exactly as designed.</p>
+<p><b>What I take away:</b> how the pieces actually fit — HTTP → controller → service → repository → database and
+back; why security belongs in a filter chain, not sprinkled through the code; and how a frontend and backend
+negotiate through a clear API contract. Everything you saw today is running live on this machine — thank you,
+and I'm happy to take questions.</p>
+</blockquote>
+
+<footer>AMC Bank BFSI training project · Spring Boot 3.2.5 · MySQL 8 · React 18 + Vite · generated 2026-09-30</footer>
+
+</body>
+</html>
