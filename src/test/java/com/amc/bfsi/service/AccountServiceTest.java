@@ -4,6 +4,10 @@ import com.amc.bfsi.dto.AccountRequest;
 import com.amc.bfsi.dto.CustomerRequest;
 import com.amc.bfsi.entity.Account;
 import com.amc.bfsi.exception.BusinessRuleException;
+import com.amc.bfsi.config.DataSeeder;
+import com.amc.bfsi.tenant.TenantContext;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +30,18 @@ class AccountServiceTest {
 
     @Autowired AccountService accountService;
     @Autowired CustomerService customerService;
+
+    // Services run inside a bank. Set before the test transaction starts, because Hibernate
+    // fixes a session's tenant when the session opens.
+    @BeforeAll
+    static void actAsDemoBank() {
+        TenantContext.set(DataSeeder.DEMO_TENANT);
+    }
+
+    @AfterAll
+    static void leaveBank() {
+        TenantContext.clear();
+    }
 
     private Long newCustomer() {
         CustomerRequest r = new CustomerRequest();

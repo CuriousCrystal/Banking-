@@ -2,40 +2,58 @@ package com.amc.bfsi.config;
 
 import com.amc.bfsi.entity.*;
 import com.amc.bfsi.repository.*;
+import com.amc.bfsi.tenant.TenantContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
-/** Puts three users and a handful of customers in place so the app is demo-ready. */
+/**
+ * Puts a demo bank, three users and a handful of customers in place so the app is demo-ready.
+ * Only runs when app.seed.enabled=true (dev and h2 profiles) - never in production.
+ */
 @Component
 public class DataSeeder implements CommandLineRunner {
 
+    /** The bank code of the demo bank (also the default at login in dev/h2). */
+    public static final String DEMO_TENANT = "amc-bank";
+
+    private final TenantRepository tenantRepository;
     private final AppUserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final AccountRepository accountRepository;
     private final PasswordEncoder encoder;
+    private final TransactionTemplate tx;
 
-    @Value("${app.seed.enabled:true}")
+    @Value("${app.seed.enabled:false}")
     private boolean enabled;
 
-    public DataSeeder(AppUserRepository userRepository, CustomerRepository customerRepository,
-                      AccountRepository accountRepository, PasswordEncoder encoder) {
+    public DataSeeder(TenantRepository tenantRepository, AppUserRepository userRepository,
+                      CustomerRepository customerRepository, AccountRepository accountRepository,
+                      PasswordEncoder encoder, PlatformTransactionManager transactionManager) {
+        this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
         this.accountRepository = accountRepository;
         this.encoder = encoder;
+        this.tx = new TransactionTemplate(transactionManager);
     }
 
     @Override
-    @Transactional
     public void run(String... args) {
         if (!enabled) {
             return;
         }
-        seedUsers();
-        seedCustomers();
+        if (!tenantRepository.existsById(DEMO_TENANT)) {
+            tenantRepository.save(new Tenant(DEMO_TENANT, "AMC Bank", Plan.ENTERPRISE));
+        }
+        // the transaction must start INSIDE runAs: Hibernate fixes a session's tenant when the session opens
+        TenantContext.runAs(DEMO_TENANT, () -> tx.executeWithoutResult(status -> {
+            seedUsers();
+            seedCustomers();
+        }));
     }
 
     private void seedUsers() {

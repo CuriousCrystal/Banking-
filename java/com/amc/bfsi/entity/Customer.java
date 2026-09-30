@@ -7,8 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "customer")
-public class Customer {
+@Table(name = "customer",
+       uniqueConstraints = @UniqueConstraint(name = "uk_customer_tenant_email", columnNames = {"tenant_id", "email"}))
+public class Customer extends TenantScoped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +19,8 @@ public class Customer {
     @Column(nullable = false, length = 60)
     private String name;
 
-    @Column(nullable = false, unique = true, length = 120)
+    // unique per bank, not globally (see uk_customer_tenant_email)
+    @Column(nullable = false, length = 120)
     private String email;
 
     @Column(length = 50)

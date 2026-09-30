@@ -1,10 +1,16 @@
 package com.amc.bfsi.exception;
 
+import jakarta.servlet.ServletException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.TypeMismatchException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -13,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Every failure in the application leaves through here, so the client
@@ -20,6 +27,8 @@ import java.util.Map;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> notFound(ResourceNotFoundException ex) {
@@ -34,6 +43,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessRuleException.class)
     public ResponseEntity<Map<String, Object>> businessRule(BusinessRuleException ex) {
         return body(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), null);
+    }
+
+    // the bank's subscription plan does not allow this
+    @ExceptionHandler(PlanLimitException.class)
+    public ResponseEntity<Map<String, Object>> planLimit(PlanLimitException ex) {
+        return body(HttpStatus.PAYMENT_REQUIRED, ex.getMessage(), null);
+    }
+
+    // a unique constraint lost a race (e.g. two signups for the same bank code at once) - never leak the SQL
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> integrity(DataIntegrityViolationException ex) {
+        log.warn("Data integrity violation", ex);
+        return body(HttpStatus.CONFLICT, "The change conflicts with existing data", null);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -70,9 +92,25 @@ public class GlobalExceptionHandler {
                 ex.getMethod() + " is not supported on this URL - is the backend rebuilt?", null);
     }
 
+    // Spring MVC's own "the client got it wrong" errors (unknown URL, bad parameter type, unsupported
+    // media type ...) carry their own status - without this they would all fall into the 500 below
+    @ExceptionHandler({ServletException.class, TypeMismatchException.class})
+    public ResponseEntity<Map<String, Object>> mvcClientError(Exception ex) {
+        HttpStatus status = ex instanceof ErrorResponse er
+                ? HttpStatus.resolve(er.getStatusCode().value()) : HttpStatus.BAD_REQUEST;
+        if (status == null || status.is5xxServerError()) {
+            return everythingElse(ex);
+        }
+        return body(status, ex.getMessage(), null);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> everythingElse(Exception ex) {
-        return body(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error: " + ex.getMessage(), null);
+        // the details go to the log, the client only gets a reference to quote to support
+        String reference = UUID.randomUUID().toString().substring(0, 8);
+        log.error("Unhandled error, reference {}", reference, ex);
+        return body(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Something went wrong on our side (reference " + reference + ")", null);
     }
 
     private ResponseEntity<Map<String, Object>> body(HttpStatus status, String message,

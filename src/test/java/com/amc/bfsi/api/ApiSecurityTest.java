@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.http.*;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Map;
 
@@ -15,8 +16,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Full HTTP stack on a random port with H2 - proves the security chain end to end:
  * public health, JWT issue, 401 without token, 403 for the wrong role.
+ * Logs in without a bank code, so it uses the demo bank (app.tenancy.default-slug in the h2 profile).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("h2")   // never the real database, even when run from an IDE
 class ApiSecurityTest {
 
     @Autowired TestRestTemplate rest;

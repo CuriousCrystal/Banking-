@@ -3,15 +3,17 @@ package com.amc.bfsi.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "app_user")
-public class AppUser {
+@Table(name = "app_user",
+       uniqueConstraints = @UniqueConstraint(name = "uk_app_user_tenant_username", columnNames = {"tenant_id", "username"}))
+public class AppUser extends TenantScoped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(nullable = false, unique = true, length = 50)
+    // unique per bank, not globally (see uk_app_user_tenant_username)
+    @Column(nullable = false, length = 50)
     private String username;
 
     @Column(nullable = false, length = 100)

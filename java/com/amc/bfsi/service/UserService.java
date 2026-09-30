@@ -17,10 +17,12 @@ public class UserService {
 
     private final AppUserRepository repository;
     private final PasswordEncoder encoder;      // the BCryptPasswordEncoder bean from SecurityConfig
+    private final PlanGuard planGuard;
 
-    public UserService(AppUserRepository repository, PasswordEncoder encoder) {
+    public UserService(AppUserRepository repository, PasswordEncoder encoder, PlanGuard planGuard) {
         this.repository = repository;
         this.encoder = encoder;
+        this.planGuard = planGuard;
     }
 
     public List<AppUser> findAll() {
@@ -29,13 +31,19 @@ public class UserService {
 
     @Transactional
     public AppUser create(UserRequest request) {
-        String username = request.getUsername().trim();
+        return createUser(request.getUsername().trim(), request.getPassword(), request.getRole());
+    }
+
+    /** Also used by signup, for the first ADMIN of a new bank. */
+    @Transactional
+    public AppUser createUser(String username, String rawPassword, String role) {
         if (repository.existsByUsername(username)) {
             throw new DuplicateResourceException("Username '" + username + "' already exists");
         }
+        planGuard.checkUserCapacity();
         // THE key line: plain text in, BCrypt hash out ("$2a$10$..."). Only the hash is stored.
-        String hash = encoder.encode(request.getPassword());
-        return repository.save(new AppUser(username, hash, request.getRole()));
+        String hash = encoder.encode(rawPassword);
+        return repository.save(new AppUser(username, hash, role));
     }
 
     @Transactional

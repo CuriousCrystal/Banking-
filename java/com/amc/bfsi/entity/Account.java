@@ -1,13 +1,16 @@
 package com.amc.bfsi.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "account")
-public class Account {
+@Table(name = "account",
+       uniqueConstraints = @UniqueConstraint(name = "uk_account_tenant_number", columnNames = {"tenant_id", "account_number"}))
+public class Account extends TenantScoped {
 
     public enum AccountStatus { ACTIVE, FROZEN, CLOSED }
 
@@ -16,10 +19,14 @@ public class Account {
     @Column(name = "account_id")
     private Long accountId;
 
-    @Column(name = "account_number", nullable = false, unique = true, length = 20)
+    // unique per bank, not globally (see uk_account_tenant_number)
+    @Column(name = "account_number", nullable = false, length = 20)
     private String accountNumber;
 
+    // Enums are plain VARCHAR columns (see V1 migration). Without @JdbcTypeCode Hibernate's MySQL dialect
+    // expects a native ENUM column and schema validation fails there - H2 would not have told us.
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "account_type", nullable = false, length = 20)
     private AccountType accountType;
 
@@ -28,6 +35,7 @@ public class Account {
     private BigDecimal balance = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "account_status", nullable = false, length = 10)
     private AccountStatus accountStatus = AccountStatus.ACTIVE;
 

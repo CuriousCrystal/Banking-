@@ -16,9 +16,11 @@ import java.util.List;
 public class CustomerService {
 
     private final CustomerRepository repository;
+    private final PlanGuard planGuard;
 
-    public CustomerService(CustomerRepository repository) {
+    public CustomerService(CustomerRepository repository, PlanGuard planGuard) {
         this.repository = repository;
+        this.planGuard = planGuard;
     }
 
     public List<Customer> findAll(String city, String search) {
@@ -42,6 +44,7 @@ public class CustomerService {
             throw new DuplicateResourceException("A customer with email "
                     + request.getEmail() + " already exists");
         }
+        planGuard.checkCustomerCapacity();
         Customer customer = new Customer(request.getName(), request.getEmail(),
                 request.getCity(), request.getPanNumber());
         return repository.save(customer);

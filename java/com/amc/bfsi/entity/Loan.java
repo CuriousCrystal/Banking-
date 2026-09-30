@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "loan")
-public class Loan {
+public class Loan extends TenantScoped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
